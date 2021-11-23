@@ -1,8 +1,15 @@
 const express = require('express');
-const Firestore = require('@google-cloud/firestore')
-const db = new Firestore();
 const app = express();
-const firebase = require('firebase/app');
+
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./animalfeeder-81959-firebase-adminsdk-bgets-9411037a38.json");
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
 
 app.use(express.json());
 const port = process.env.PORT || 8080;
@@ -11,7 +18,8 @@ app.listen(port, () => {
     console.log(`AnimalFeeder Rest API listening on port ${port}`);
 });
 
-app.get('/', async (req, res) => {
+
+app.get('/all', async (req, res) => {
     const query = db.collection('dispenser');
     const querySnapshot = await query.get();
     if (querySnapshot.size > 0) {
@@ -19,6 +27,15 @@ app.get('/', async (req, res) => {
     } else {
         res.json({status: 'Not found'});
     }
+})
+
+app.get('/img/:image', function(req,res){
+    const image = req.params.image;
+    res.sendFile(__dirname + '/img/' + image);
+});
+
+app.get('/', async (req, res) => {
+    res.sendFile(__dirname + '/index.html');
 })
 
 app.post('/', async (req, res) => {
